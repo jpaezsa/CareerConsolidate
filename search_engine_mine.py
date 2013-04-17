@@ -1,5 +1,6 @@
 # algorithms to data mine various search engines for the jobs links necessary
 
+# the problem of redundant links is not yet implemented
 
 
 # This algorithm is written for http://www.dice.com jobs website.  I'm utilizing the mechanize
@@ -66,6 +67,9 @@ def return_jobs_from_dice(position, location):
 
 
 # the algorithm for stack overflow jobs
+# this algorithm employs similar protocols as the return_jobs_from_dice alg
+# what is returned by both is a list object called jobs containing a bunch of
+# mechanize-generated Link objects
 
 
 def stack_jobs(position, location):
