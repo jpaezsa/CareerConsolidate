@@ -119,3 +119,63 @@ def stack_jobs(position, location):
             if ('class', 'post-tag job-link') in i.attrs or ('class', 'fav-toggle') in i.attrs:
                 del jobs[jobs.index(i)]
     return jobs
+
+
+#####################################################################################################
+
+
+# This monster.com algorithm had to employ some different techniques than dice and stack overflow
+# due to the nature of ASP.NET, which is what monster uses.  Rather than directly opening
+# a job search engine website and populating form data like before, I had to utilize an API
+# and make calls to that after some slight string manipulation conforming to their specifications
+
+
+# This algorithm also returns a list object of mechanize Link objects
+
+
+
+def get_monster_jobs(position, location):
+    import mechanize
+    import cookielib
+    br = mechanize.Browser()
+    cj = cookielib.LWPCookieJar()
+    br.set_cookiejar(cj)
+    br.addheaders = [('User-Agent', 'Mozilla/5.0(X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.set_debug_http(True)
+    br.set_debug_redirects(True)
+    br.set_handle_equiv(True)
+    br.set_handle_gzip(True)
+    br.set_handle_redirect(True)
+    br.set_handle_robots(False)
+    monster_api = 'http://jobsearch.monster.com/search/?q={0}&where={1}'
+    position = position.replace(' ', '-')
+    position = position.replace(',', '__2C')
+    location = location.replace(' ', '-')
+    location = location.replace(',', '__2C')
+    br.open(monster_api.format(position, location))
+    links = [i for i in br.links()]
+    jobs = []
+    first_page = [i for i in links if i.text =='1']
+    end_page = [i for i in links if i.text =='Next']
+    if len(first_page) == 0:
+        start_jobs = links.index([i for i in links if i.text == 'Advanced Search'][0]) + 1
+        stop = links.index([i for i in links if i.text == '(Hiring Now) Local Jobs'][0]) - 2
+        jobs += links[start_jobs:stop]
+    else:
+        start_jobs = links.index([i for i in links if i.text == 'Advanced Search'][0]) + 1
+        stop = links.index([i for i in links if i.text == '1'][0])
+        jobs += links[start_jobs:stop]
+        pages = links[links.index(first_page[0]): links.index(end_page[0])]
+        del pages[0]
+        if len(pages) > 0:
+            for i in pages:
+                br.follow_link(i)
+                current_links = [e for e in br.links()]
+                start_jobs = current_links.index([i for i in current_links if i.text == 'Advanced Search'][0]) + 1
+                #stop_jobs = current_links.index([i for i in current_links if i.text == '(Hiring Now) Local Jobs'][0]) - 2
+                to_parse = current_links[start_jobs:]
+    while len([i for i in jobs if ('class', 'slJobTitle fnt11') not in i.attrs or ('class', 'slJobTitle') not in i.attrs]) > 0:
+        for e in jobs:
+            if ('class', 'slJobTitle fnt11') not in e.attrs and ('class', 'slJobTitle') not in e.attrs:
+                del jobs[jobs.index(e)]
+    return jobs
