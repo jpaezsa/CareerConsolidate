@@ -61,6 +61,44 @@ def return_jobs_from_dice(position, location):
         del jobs[jobs.index(obsolete)]
     return jobs
 
+#### ++++++++++++++++++++++++++++++++++++++ #######
+# AMENDED DICE ALGORITHM
+
+def return_jobs_from_dice2(position, location):
+    import mechanize
+    import cookielib
+    cj = cookielib.LWPCookieJar()
+    br = mechanize.Browser()
+    br.addheaders = [('User-Agent', 'Mozilla/5.0(X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.set_debug_http(True)
+    br.set_debug_redirects(True)
+    br.set_handle_equiv(True)
+    br.set_handle_gzip(True)
+    br.set_handle_redirect(True)
+    br.set_handle_robots(False)
+    br.open('http://www.dice.com')
+    br.select_form(nr=0)
+    br.form['FREE_TEXT'] = position
+    br.form['WHERE'] = location
+    br.submit()
+    links = [i for i in br.links()]
+    jobs = []
+    start = links.index([i for i in links if i.text == 'Location'][0])+2
+    stop = links.index([i for i in links if i.text == '1'][0], start)
+    jobs += links[start:stop]
+    while len([e for e in br.links() if e.text == 'Next']) > 0:
+        br.follow_link([e for e in br.links() if e.text == 'Next'][0])
+        current_links = [j for j in br.links()]
+        cur_start = current_links.index([l for l in current_links if l.text == 'Location'][0])+2
+        cur_end = current_links.index([l for l in current_links if l.text == '1'][0], cur_start)
+        jobs += current_links[cur_start:cur_end]
+    while len([i for i in jobs if len(i.attrs) > 1]) > 0:
+        for e in jobs:
+            if len(e.attrs) > 1:
+                del jobs[jobs.index(e)]
+        
+    return jobs
+
 
 
 ############################################################################################################
