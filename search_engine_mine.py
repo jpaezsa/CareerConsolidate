@@ -266,3 +266,50 @@ def get_careerbuilder_jobs(position, location):
             if ('class', 'jt prefTitle') not in link.attrs:
                 del jobs[jobs.index(link)]
     return jobs
+
+
+######################################################################################
+
+# indeed.com data mining algorithm was also very similar in architechture
+# it returns the same data as all the others
+
+
+def get_indeed_jobs(position, location):
+    import mechanize
+    import cookielib
+    br = mechanize.Browser()
+    cj = cookielib.LWPCookieJar()
+    br.set_cookiejar(cj)
+    br.addheaders = [('User-Agent', 'Mozilla/5.0(X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.set_debug_http(True)
+    br.set_debug_redirects(True)
+    br.set_handle_equiv(True)
+    br.set_handle_gzip(True)
+    br.set_handle_redirect(True)
+    br.set_handle_robots(False)
+    jobs = []
+    br.open('http://www.indeed.com')
+    # form stuff
+    br.select_form(nr=0)
+    br.form['q'] = position
+    br.form['l'] = location
+    br.submit()
+    # links
+    links = [i for i in br.links()]
+    start = links.index([e for e in links if e.text == 'Post your resume'][0])
+    if len([e for e in links if e.text == 'Next\xc2\xa0\xc2\xbb']) > 0:
+        stop = links.index([e for e in links if e.text == '2'][0], start)
+    else:
+        stop = links.index([e for e in links if e.text == 'Jobs'][0], start)
+    jobs += links[start:stop]
+    while len([e for e in br.links() if e.text == 'Next\xc2\xa0\xc2\xbb']) > 0:
+        br.follow_link([i for i in br.links() if i.text == 'Next\xc2\xa0\xc2\xbb'][0])
+        current_links = [a for a in br.links()]
+        start = current_links.index([e for e in current_links if e.text == 'Post your resume'][0])
+        stop = current_links.index([e for e in current_links if e.text == 'Jobs'][0])
+        jobs += current_links[start:stop]
+    while len([i for i in jobs if ('itemprop', 'title') not in i.attrs]) > 0:
+        for link in jobs:
+            if ('itemprop', 'title') not in link.attrs:
+                del jobs[jobs.index(link)] 
+    return jobs
