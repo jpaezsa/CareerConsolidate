@@ -179,3 +179,52 @@ def get_monster_jobs(position, location):
             if ('class', 'slJobTitle fnt11') not in e.attrs and ('class', 'slJobTitle') not in e.attrs:
                 del jobs[jobs.index(e)]
     return jobs
+
+
+#################################################################################################################333
+
+
+
+# Similar to other mining algorithms, with the exception of monster, but alike in the final cleansing,
+# the algorithm for careerbuilder followed suite with regard to algorithmic structure.
+
+# the algorithm returns a list object of mechanize Link objects
+
+
+def get_careerbuilder_jobs(position, location):
+    import mechanize
+    import cookielib
+    br = mechanize.Browser()
+    cj = cookielib.LWPCookieJar()
+    br.set_cookiejar(cj)
+    br.addheaders = [('User-Agent', 'Mozilla/5.0(X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.set_debug_http(True)
+    br.set_debug_redirects(True)
+    br.set_handle_equiv(True)
+    br.set_handle_gzip(True)
+    br.set_handle_redirect(True)
+    br.set_handle_robots(False)
+    br.open('http://www.careerbuilder.com')
+    br.select_form(nr=0)
+    br.form['s_rawwords'] = position
+    br.form['s_freeloc'] = location
+    br.submit()
+    jobs = []
+    links = [i for i in br.links()]
+    # starting index of desired after links within the links on the current page
+    start =links.index([i for i in links if i.text == 'Posted'][0])
+    stop = links.index([i for i in links if i.text == 'Cancel'][0], start)
+    jobs += links[start:stop]
+    while len([i for i in br.links() if i.text == 'Next Page']) > 0:
+        br.follow_link([i for i in br.links() if i.text == 'Next Page'][0])
+        current_links = [e for e in br.links()]
+        start_jobs = current_links.index([j for j in current_links if j.text == 'Posted'][0])
+        stop_jobs = current_links.index([j for j in current_links if j.text == 'Cancel'][0])
+        jobs += current_links[start_jobs:stop_jobs]
+        
+    # now we need to clean up our jobs list and get rid of all erroneous links
+    while len([i for i in jobs if ('class', 'jt prefTitle') not in i.attrs]) > 0:
+        for link in jobs:
+            if ('class', 'jt prefTitle') not in link.attrs:
+                del jobs[jobs.index(link)]
+    return jobs
