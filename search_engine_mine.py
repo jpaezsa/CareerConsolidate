@@ -219,6 +219,52 @@ def get_monster_jobs(position, location):
     return jobs
 
 
+#++++++++++++++++++++ AMENDED MONSTER JOBS ALGORITHM +++++++++++++++++++++++++
+
+
+def get_monster_jobs2(position, location):
+    import mechanize
+    import cookielib
+    br = mechanize.Browser()
+    cj = cookielib.LWPCookieJar()
+    br.set_cookiejar(cj)
+    br.addheaders = [('User-Agent', 'Mozilla/5.0(X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.set_debug_http(True)
+    br.set_debug_redirects(True)
+    br.set_handle_equiv(True)
+    br.set_handle_gzip(True)
+    br.set_handle_redirect(True)
+    br.set_handle_robots(False)
+    monster_api = 'http://jobsearch.monster.com/search/?q={0}&where={1}'
+    position = position.replace(' ', '-')
+    position = position.replace(',', '__2C')
+    location = location.replace(' ', '-')
+    location = location.replace(',', '__2C')
+    br.open(monster_api.format(position, location))
+    links = [i for i in br.links()]
+    jobs = []
+    start = links.index([e for e in links if e.text == 'Advanced Search'][0])
+    if len([e for e in links if e.text == 'Next']) > 0:
+        stop = links.index([j for j in links if j.text == 'Next'][0], start)
+    else:
+        stop = links.index([e for e in links if e.text == 'Resume Distribution'][0], start)
+    
+    jobs += links[start:stop]
+    #first_page = [i for i in links if i.text =='1']
+    #end_page = [i for i in links if i.text =='Next']
+    while len([e for e in br.links() if e.text == 'Next']) > 0:
+        br.follow_link([e for e in br.links() if e.text == 'Next'][0])
+        current_links = [i for i in br.links()]
+        start_jobs = current_links.index([e for e in current_links if e.text == 'Advanced Search'][0])
+        stop_jobs = current_links.index([j for j in current_links if j.text == '1'][0], start_jobs)
+        jobs += current_links[start_jobs:stop_jobs]
+    while len([i for i in jobs if ('class', 'slJobTitle') not in i.attrs]) > 0:
+        for e in jobs:
+            if ('class', 'slJobTitle fnt11') not in e.attrs and ('class', 'slJobTitle') not in e.attrs:
+                del jobs[jobs.index(e)]
+    return jobs
+
+
 #################################################################################################################333
 
 
