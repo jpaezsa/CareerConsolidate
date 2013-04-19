@@ -262,7 +262,7 @@ def get_monster_jobs2(position, location):
         jobs += current_links[start_jobs:stop_jobs]
     while len([i for i in jobs if ('class', 'slJobTitle') not in i.attrs]) > 0:
         for e in jobs:
-            if ('class', 'slJobTitle fnt11') not in e.attrs and ('class', 'slJobTitle') not in e.attrs:
+            if ('class', 'slJobTitle') not in e.attrs:
                 del jobs[jobs.index(e)]
     return jobs
 
