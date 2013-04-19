@@ -154,9 +154,9 @@ def stack_jobs(position, location):
                 jobs += cur_links[start_cared:stop_cared]
     # to delete the unnecessary links to languages
     # while there are still Link objects containing the parameters....
-    while len([i for i in jobs if ('class', 'post-tag job-link') in i.attrs or ('class', 'fav-toggle') in i.attrs]) > 0:
+    while len([i for i in jobs if ('class', 'title job-link') not in i.attrs]) > 0:
         for i in jobs:
-            if ('class', 'post-tag job-link') in i.attrs or ('class', 'fav-toggle') in i.attrs:
+            if ('class', 'title job-link') not in i.attrs:
                 del jobs[jobs.index(i)]
     return jobs
 
