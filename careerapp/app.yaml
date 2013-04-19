@@ -1,0 +1,29 @@
+application: wesleymadrigal
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: no
+
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+
+- url: /twitter-bootstrap-37d0a30
+  static_dir: twitter-bootstrap-37d0a30
+ 
+- url: .*
+  script: main.app
+
+
+builtins:
+- remote_api: on
+
+
+libraries:
+- name: webapp2
+  version: "2.5.1"
+- name: jinja2
+  version: latest
