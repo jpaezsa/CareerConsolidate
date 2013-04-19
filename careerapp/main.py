@@ -61,7 +61,7 @@ class MainHandler(Handler):
 						del jobs[jobs.index(e)]	
 			jobs_dict = {}
 			for i in jobs:
-				jobs_dict[i.text.decode('utf-8')] = i.absolute_url.decode('utf-8')
+				jobs_dict[i.text] = i.absolute_url
 
 			self.render('main.html', position = position, location = location, jobs_dict = jobs_dict)
 

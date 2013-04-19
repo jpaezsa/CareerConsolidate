@@ -25,12 +25,12 @@
 
 </head>
 
-<body>
+<body style="background-color:#F8F8F8;">
 
 <div class="container-fluid">
 	{% block title %}
 	{% endblock %}
-	<div class="navbar navbar-static-top navbar-inverse">
+	<div class="navbar navbar-static-top">
 		<div class="navbar-inner">
       			<a class="brand" href="/">CareerConsolidate</a>
          		<button class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -48,7 +48,7 @@
    		</div>
 	</div>
 <br>
-<div class="content pagination-centered">
+<div class="content pagination-center">
 	<form method="POST">
 		<label>Position:
 		<input type="text" name="position" />
@@ -69,14 +69,13 @@
 	<p style="color:green; font-size:22px;"><b>The jobs we found for {{position}} in {{location}}:</b></p>
 	<hr>
 	<br>
-
-	{% for job in jobs_dict.keys() %}
-	<p>
-	<a class="linkss" target="_blank" onclick="window.open('{{jobs_dict[job]}}');"><h4>{{job}}</h4></a>
-	<!--<a href="{{jobs_dict[job]}}">{{job}}</a>	/!-->
-	</p>
-	<br>
-	{% endfor %}
+	   <ol class="pager">
+		{% for job in jobs_dict.keys() %}
+		<li><a class="linkss" target="_blank" onclick="window.open('{{jobs_dict[job]}}');"><h4>{{job}}</h4></a></li>
+		<br>
+			
+		{% endfor %}
+	  </ol> 
 	{% endif %}
 
 
