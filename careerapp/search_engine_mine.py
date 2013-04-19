@@ -152,9 +152,9 @@ def stack_jobs(position, location):
                 jobs += cur_links[start_cared:stop_cared]
     # to delete the unnecessary links to languages
     # while there are still Link objects containing the parameters....
-    while len([i for i in jobs if ('class', 'title job-link') not in i.attrs]) > 0:
+    while len([i for i in jobs if ('class', 'post-tag job-link') in i.attrs or ('class', 'fav-toggle') in i.attrs]) > 0:
         for i in jobs:
-            if ('class', 'title job-link') not in i.attrs:
+            if ('class', 'post-tag job-link') in i.attrs or ('class', 'fav-toggle') in i.attrs:
                 del jobs[jobs.index(i)]
     return jobs
 
@@ -256,7 +256,7 @@ def get_monster_jobs2(position, location):
         br.follow_link([e for e in br.links() if e.text == 'Next'][0])
         current_links = [i for i in br.links()]
         start_jobs = current_links.index([e for e in current_links if e.text == 'Advanced Search'][0])
-        stop_jobs = current_links.index([j for j in current_links if j.text == '1'][0], start_jobs)
+        stop_jobs = current_links.index([j for j in current_links if j.text == 'Previous'][0], start_jobs)
         jobs += current_links[start_jobs:stop_jobs]
     while len([i for i in jobs if ('class', 'slJobTitle') not in i.attrs]) > 0:
         for e in jobs:
