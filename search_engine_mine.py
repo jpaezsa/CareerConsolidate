@@ -91,7 +91,7 @@ def return_jobs_from_dice2(position, location):
             br.follow_link([e for e in br.links() if e.text == 'Next'][0])
             current_links = [j for j in br.links()]
             cur_start = current_links.index([l for l in current_links if l.text == 'Location'][0])+2
-            cur_end = current_links.index([l for l in current_links if l.text == '1'][0], cur_start)
+            cur_end = current_links.index([l for l in current_links if l.text == 'Prev'][0], cur_start)
             jobs += current_links[cur_start:cur_end]
         while len([i for i in jobs if len(i.attrs) > 1]) > 0:
             for e in jobs:
