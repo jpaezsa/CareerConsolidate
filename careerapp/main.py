@@ -58,13 +58,17 @@ class MainHandler(Handler):
 			for i in jobs:
 				for e in jobs:
 					if e != i and e.text == i.text:
-						del jobs[jobs.index(e)]	
-			jobs_dict = {}
-			for i in jobs:
-				key = i.text.decode('utf-8').encode('ascii', 'xmlcharrefreplace')
-				jobs_dict[key] = i.absolute_url
+						del jobs[jobs.index(e)]
+			if len(jobs) > 0:	
+				jobs_dict = {}
+				for i in jobs:
+					key = i.text.decode('utf-8').encode('ascii', 'xmlcharrefreplace')
+					jobs_dict[key] = i.absolute_url
 
-			self.render('main.html', position = position, location = location, jobs_dict = jobs_dict)
+				self.render('main.html', position = position, location = location, jobs_dict = jobs_dict)
+			else:
+				nojobs = "We couldn't find any {0} jobs in {1}".format(position, location)
+				self.render('main.html', nojobs = nojobs)
 
 		else:
 			error = 'We need a position AND location to continue'

@@ -81,24 +81,26 @@ def return_jobs_from_dice2(position, location):
     br.form['FREE_TEXT'] = position
     br.form['WHERE'] = location
     br.submit()
-    links = [i for i in br.links()]
     jobs = []
-    start = links.index([i for i in links if i.text == 'Location'][0])+2
-    stop = links.index([i for i in links if i.text == '1'][0], start)
-    jobs += links[start:stop]
-    while len([e for e in br.links() if e.text == 'Next']) > 0:
-        br.follow_link([e for e in br.links() if e.text == 'Next'][0])
-        current_links = [j for j in br.links()]
-        cur_start = current_links.index([l for l in current_links if l.text == 'Location'][0])+2
-        cur_end = current_links.index([l for l in current_links if l.text == '1'][0], cur_start)
-        jobs += current_links[cur_start:cur_end]
-    while len([i for i in jobs if len(i.attrs) > 1]) > 0:
-        for e in jobs:
-            if len(e.attrs) > 1:
-                del jobs[jobs.index(e)]
-        
-    return jobs
+    links = [i for i in br.links()]
+    if len(links) > 60:
+        start = links.index([i for i in links if i.text == 'Location'][0])+2
+        stop = links.index([i for i in links if i.text == '1'][0], start)
+        jobs += links[start:stop]
+        while len([e for e in br.links() if e.text == 'Next']) > 0:
+            br.follow_link([e for e in br.links() if e.text == 'Next'][0])
+            current_links = [j for j in br.links()]
+            cur_start = current_links.index([l for l in current_links if l.text == 'Location'][0])+2
+            cur_end = current_links.index([l for l in current_links if l.text == '1'][0], cur_start)
+            jobs += current_links[cur_start:cur_end]
+        while len([i for i in jobs if len(i.attrs) > 1]) > 0:
+            for e in jobs:
+                if len(e.attrs) > 1:
+                    del jobs[jobs.index(e)]
+    else:
+        jobs = []
 
+    return jobs
 
 
 ############################################################################################################
@@ -274,7 +276,6 @@ def get_monster_jobs2(position, location):
 
 # the algorithm returns a list object of mechanize Link objects
 
-
 def get_careerbuilder_jobs(position, location):
     import mechanize
     import cookielib
@@ -295,22 +296,25 @@ def get_careerbuilder_jobs(position, location):
     br.submit()
     jobs = []
     links = [i for i in br.links()]
-    # starting index of desired after links within the links on the current page
-    start =links.index([i for i in links if i.text == 'Posted'][0])
-    stop = links.index([i for i in links if i.text == 'Cancel'][0], start)
-    jobs += links[start:stop]
-    while len([i for i in br.links() if i.text == 'Next Page']) > 0:
-        br.follow_link([i for i in br.links() if i.text == 'Next Page'][0])
-        current_links = [e for e in br.links()]
-        start_jobs = current_links.index([j for j in current_links if j.text == 'Posted'][0])
-        stop_jobs = current_links.index([j for j in current_links if j.text == 'Cancel'][0])
-        jobs += current_links[start_jobs:stop_jobs]
+    if len([e for e in links if ('id', 'AskForCatSubmit') in e.attrs]) == 0:
+        # starting index of desired after links within the links on the current page
+        start =links.index([i for i in links if i.text == 'Posted'][0])
+        stop = links.index([i for i in links if i.text == 'Cancel'][0], start)
+        jobs += links[start:stop]
+        while len([i for i in br.links() if i.text == 'Next Page']) > 0:
+            br.follow_link([i for i in br.links() if i.text == 'Next Page'][0])
+            current_links = [e for e in br.links()]
+            start_jobs = current_links.index([j for j in current_links if j.text == 'Posted'][0])
+            stop_jobs = current_links.index([j for j in current_links if j.text == 'Cancel'][0])
+            jobs += current_links[start_jobs:stop_jobs]
         
-    # now we need to clean up our jobs list and get rid of all erroneous links
-    while len([i for i in jobs if ('class', 'jt prefTitle') not in i.attrs]) > 0:
-        for link in jobs:
-            if ('class', 'jt prefTitle') not in link.attrs:
-                del jobs[jobs.index(link)]
+        # now we need to clean up our jobs list and get rid of all erroneous links
+        while len([i for i in jobs if ('class', 'jt prefTitle') not in i.attrs]) > 0:
+            for link in jobs:
+                if ('class', 'jt prefTitle') not in link.attrs:
+                    del jobs[jobs.index(link)]
+    else:
+        jobs = []
     return jobs
 
 

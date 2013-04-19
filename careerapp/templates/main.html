@@ -78,7 +78,10 @@
 		<br>
 			
 		{% endfor %}
-	  </ol> 
+	  </ol>
+
+	{% elif nojobs %}
+		<p style="color:green; font-weight:bold; font-size:25px; padding:50px;">{{nojobs}}</p> 
 	{% endif %}
 
 
