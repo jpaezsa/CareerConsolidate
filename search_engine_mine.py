@@ -160,6 +160,62 @@ def stack_jobs(position, location):
                 del jobs[jobs.index(i)]
     return jobs
 
+#+++++++++++++++++++++++++++++++++++++++++++++#
+
+# Version 2 of the stack jobs implementing non-mechanize data mining techniques
+
+
+def get_stack_v2(position, location):  
+    import urllib2
+    # have job be a global for all algorithms to add to
+    jobs = {}
+    stack_api = 'http://careers.stackoverflow.com/jobs?searchTerm={0}&location={1}'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = stack_api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f1 = [i.split('\r') for i in f1]
+    page = 1
+    if f1[119][0].find('title') != -1:
+        while f1[119][0].find('title') != -1:
+            index = 119
+            while f1[index][0].find('title') != -1:
+                base_url = 'http://careers.stackoverflow.com'
+                # url concatenation stuff
+                start = f1[index][0].find('/')
+                stop = f1[index][0].find('title=')-2
+                add_url = f1[index][0][start:stop]
+                job_url = base_url+add_url
+                # job title stuff
+                start_title = stop+9
+                stop_title = f1[index][0].find('</a>')
+                title = f1[index][0][start_title:stop_title]
+                # company stuff
+                comp = f1[index+3][0]
+                comp_start = comp.find('title=') + 7
+                comp_stop = comp.find('>', comp_start) - 1
+                company = comp[comp_start:comp_stop]
+                # timeline stuff
+                # job index - 6
+                job_posted_time = f1[index-6][0]
+                start_ind = job_posted_time.index([e for e in job_posted_time if e.isdigit()][0])
+                job_timeline = job_posted_time[start_ind:]
+                jobs[title] = []
+                jobs[title] += (job_url, company, job_timeline)
+                index = index + 27
+            # make a new page
+            page += 1
+            formatted_new = formatted + '&pg=%s' % page
+            f = urllib2.urlopen(formatted_new)
+            f1 = f.read().split('\n')
+            f.close()
+            f1 = [i.split('\r') for i in f1]
+        return jobs, formatted_new
+    else:
+        return jobs
+
 
 #####################################################################################################
 
