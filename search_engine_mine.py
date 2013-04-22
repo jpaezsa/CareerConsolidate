@@ -160,62 +160,6 @@ def stack_jobs(position, location):
                 del jobs[jobs.index(i)]
     return jobs
 
-#+++++++++++++++++++++++++++++++++++++++++++++#
-
-# Version 2 of the stack jobs implementing non-mechanize data mining techniques
-
-
-def get_stack_v2(position, location):  
-    import urllib2
-    # have job be a global for all algorithms to add to
-    jobs = {}
-    stack_api = 'http://careers.stackoverflow.com/jobs?searchTerm={0}&location={1}'
-    position = position.replace(' ', '+')
-    location = location.replace(',', '%2C')
-    location = location.replace(' ', '+')
-    formatted = stack_api.format(position, location)
-    f = urllib2.urlopen(formatted)
-    f1 = f.read().split('\n')
-    f1 = [i.split('\r') for i in f1]
-    page = 1
-    if f1[119][0].find('title') != -1:
-        while f1[119][0].find('title') != -1:
-            index = 119
-            while f1[index][0].find('title') != -1:
-                base_url = 'http://careers.stackoverflow.com'
-                # url concatenation stuff
-                start = f1[index][0].find('/')
-                stop = f1[index][0].find('title=')-2
-                add_url = f1[index][0][start:stop]
-                job_url = base_url+add_url
-                # job title stuff
-                start_title = stop+9
-                stop_title = f1[index][0].find('</a>')
-                title = f1[index][0][start_title:stop_title]
-                # company stuff
-                comp = f1[index+3][0]
-                comp_start = comp.find('title=') + 7
-                comp_stop = comp.find('>', comp_start) - 1
-                company = comp[comp_start:comp_stop]
-                # timeline stuff
-                # job index - 6
-                job_posted_time = f1[index-6][0]
-                start_ind = job_posted_time.index([e for e in job_posted_time if e.isdigit()][0])
-                job_timeline = job_posted_time[start_ind:]
-                jobs[title] = []
-                jobs[title] += (job_url, company, job_timeline)
-                index = index + 27
-            # make a new page
-            page += 1
-            formatted_new = formatted + '&pg=%s' % page
-            f = urllib2.urlopen(formatted_new)
-            f1 = f.read().split('\n')
-            f.close()
-            f1 = [i.split('\r') for i in f1]
-        return jobs, formatted_new
-    else:
-        return jobs
-
 
 #####################################################################################################
 
@@ -419,3 +363,174 @@ def get_indeed_jobs(position, location):
             if ('itemprop', 'title') not in link.attrs:
                 del jobs[jobs.index(link)] 
     return jobs
+
+
+
+
+##############################################################################################################################################################################################################################################################################################################################################################################################################
+
+# VERSION 2 OF ALGORITHMS
+
+
+
+# stack
+# returns a dictionary with job_url as key and title, company, duration been posted as values
+
+def get_stack_v2(position, location):
+    import urllib2
+    # have job be a global for all algorithms to add to
+    jobs = {}
+    stack_api = 'http://careers.stackoverflow.com/jobs?searchTerm={0}&location={1}'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = stack_api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f1 = [i.split('\r') for i in f1]
+    page = 1
+    #if f1[119][0].find('title') != -1:
+    if len([e for e in f1 if '<a class="title job-link"' in e[0]]) > 0:
+        while len([e for e in f1 if '<a class="title job-link"' in e[0]]) > 0:
+            indexes = [f1.index(e) for e in f1 if '<a class="title job-link"' in e[0] or '<a class="title job-link abbrev"' in e[0]]
+            for index in indexes:
+                base_url = 'http://careers.stackoverflow.com'
+                # url concatenation stuff
+                start = f1[index][0].find('/')
+                stop = f1[index][0].find('title=')-2
+                add_url = f1[index][0][start:stop]
+                job_url = base_url+add_url
+                # job title stuff
+                start_title = stop+9
+                stop_title = f1[index][0].find('"', start_title)
+                title = f1[index][0][start_title:stop_title]
+                # company stuff
+                comp = f1[index+3][0]
+                comp_new = [e for e in comp if not e.isspace()]
+                company = ''.join(comp_new)
+                # timeline stuff
+                # job index - 6
+                job_posted_time = f1[index-6][0]
+                start_ind = job_posted_time.index([e for e in job_posted_time if e.isdigit()][0])
+                job_timeline = job_posted_time[start_ind:]
+                jobs[job_url] = [title, company, job_timeline]
+            # make a new page
+            page += 1
+            formatted_new = formatted + '&pg=%s' % page
+            f = urllib2.urlopen(formatted_new)
+            f1 = f.read().split('\n')
+            f.close()
+            f1 = [i.split('\r') for i in f1]
+        return jobs
+    else:
+        return jobs
+
+
+# monster
+# returns a dicionary with the link as key and title, company, duration been posted as values
+
+def get_monster_v2(position, location):
+    from search_engine_mine import states
+    import urllib2
+    jobs = {}
+    position = position.replace(' ', '-')
+    location = location.replace(',', '__2C')
+    location = location.replace(' ', '-')
+    api = 'http://jobsearch.monster.com/search/{0}_5?where={1}'
+    formatted = api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f.close()
+    f1 = [i.split('\r') for i in f1]
+    pages_api = 'http://jobsearch.monster.com/search/{0}+{1}+{2}_125?pg={3}&where={4}&rad=20-miles'
+    page = 1
+    if len([e for e in f1 if 'class="slJobTitle' in e[0]]) > 0:
+        while len([e for e in f1 if 'class="slJobTitle' in e[0]]) > 0:
+            indexes = [f1.index(e) for e in f1 if 'class="slJobTitle' in e[0]]
+            for index in indexes:
+                string = f1[index][0]
+                # title stuff
+                start_title = string.find('title=')+7
+                end_title = string.find('"', start_title)
+                title = string[start_title:end_title]
+                # link stuff
+                start_link = string.find('href=')
+                start_link = start_link+6
+                stop_link = string.find('">', start_link)
+                link = string[start_link:stop_link]
+                # index of job + 22 = time
+                time_str = f1[index+22][0]
+                list_time_str = [e for e in time_str if not e.isspace()]
+                actual_time = ''.join(list_time_str)
+                # index + 8 = company
+                comp = f1[943][0]
+                start = comp.find('>')
+                start = comp.find('>')+1
+                stop = comp.find('</', start)
+                company = comp[start:stop]
+                jobs[link] = [title, company, actual_time]
+            page += 1
+            state = states[location[len(location)-2:].upper()]
+            city = location[0:location.find('_')]
+            formatted_pages = pages_api.format(state, city, position, page, location)
+            f = urllib2.urlopen(formatted_pages)
+            f1 = f.read().split('\n')
+            f1 = [i.split('\r') for i in f1]
+    else:
+        jobs = {}
+    return jobs
+
+
+
+# a dictionary for use in monster
+
+states = {'AK': 'Alaska',
+ 'AL': 'Alabama',
+ 'AR': 'Arkansas',
+ 'AZ': 'Arizona',
+ 'CA': 'California',
+ 'CO': 'Colorado',
+ 'CT': 'Connecticut',
+ 'DE': 'Delaware',
+ 'FL': 'Florida',
+ 'GA': 'Georgia',
+ 'HI': 'Hawaii',
+ 'IA': 'Iowa',
+ 'ID': 'Idaho',
+ 'IL': 'Illinois',
+ 'IN': 'Indiana',
+ 'KS': 'Kansas',
+ 'KY': 'Kentucky',
+ 'LA': 'Louisiana',
+ 'MA': 'Massachusetts',
+ 'MD': 'Maryland',
+ 'ME': 'Maine',
+ 'MI': 'Michigan',
+ 'MN': 'Minnesota',
+ 'MO': 'Missouri',
+ 'MS': 'Mississippi',
+ 'MT': 'Montana',
+ 'NC': 'North Carolina',
+ 'ND': 'North Dakota',
+ 'NE': 'Nebraska',
+ 'NH': 'New Hampshire',
+ 'NJ': 'New Jersey',
+ 'NM': 'New Mexico',
+ 'NV': 'Nevada',
+ 'NY': 'New York',
+ 'OH': 'Ohio',
+ 'OK': 'Oklahoma',
+ 'OR': 'Oregon',
+ 'PA': 'Pennsylvania',
+ 'RI': 'Rhode Island',
+ 'SC': 'South Carolina',
+ 'SD': 'South Dakota',
+ 'TN': 'Tennessee',
+ 'TX': 'Texas',
+ 'UT': 'Utah',
+ 'VA': 'Virginia',
+ 'VT': 'Vermont',
+ 'WA': 'Washington',
+ 'WI': 'Wisconsin',
+ 'WV': 'West Virginia',
+ 'WY': 'Wyoming'}
