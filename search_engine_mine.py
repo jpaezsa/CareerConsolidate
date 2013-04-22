@@ -411,8 +411,7 @@ def get_stack_v2(position, location):
                 # timeline stuff
                 # job index - 6
                 job_posted_time = f1[index-6][0]
-                start_ind = job_posted_time.index([e for e in job_posted_time if e.isdigit()][0])
-                job_timeline = job_posted_time[start_ind:]
+                job_timeline = ''.join([e for e in job_posted_time if not e.isspace()])
                 jobs[job_url] = [title, company, job_timeline]
             # make a new page
             page += 1
@@ -534,3 +533,82 @@ states = {'AK': 'Alaska',
  'WI': 'Wisconsin',
  'WV': 'West Virginia',
  'WY': 'Wyoming'}
+
+
+
+
+# careerbuilder
+
+def careerbuilder_v2(position, location):
+    import urllib2
+    jobs = {}
+    api = 'http://www.careerbuilder.com/Jobseeker/Jobs/JobResults.aspx?IPath=QH&qb=1&s_rawwords={0}&s_freeloc={1}&s_jobtypes=ALL'
+    pages_api = 'http://www.careerbuilder.com/Jobseeker/Jobs/JobResults.aspx?excrit=freeLoc%3d{0}%3bQID%3dA6660204858735%3bst%3da%3buse%3dALL%3brawWords%3d{1}%3bCID%3dUS%3bSID%3d%3f%3bTID%3d0%3bENR%3dNO%3bDTP%3dDRNS%3bYDI%3dYES%3bIND%3dALL%3bPDQ%3dAll%3bPDQ%3dAll%3bPAYL%3d0%3bPAYH%3dgt120%3bPOY%3dNO%3bETD%3dALL%3bRE%3dALL%3bMGT%3dDC%3bSUP%3dDC%3bFRE%3d30%3bCHL%3dAL%3bQS%3dsid_unknown%3bSS%3dNO%3bTITL%3d0%3bOB%3d-relv%3bJQT%3dRAD%3bJDV%3dFalse%3bMaxLowExp%3d-1%3bRecsPerPage%3d25&pg={2}&IPath=QHKV'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f1 = [i.split('\r') for i in f1]
+    page = 1
+    if len([e for e in f1 if 'class="jt prefTitle"' in e[0]]) > 0:
+        # eliminate erroneous pages
+        index_of_pages = [f1.index(e) for e in f1 if 'class="jobresults_count"' in e[0]][0]+2
+        stuff = f1[index_of_pages][0]
+        stuff = ''.join([e for e in stuff if not e.isspace()])
+        one = stuff.find('-')
+        first_num = int(stuff[0:one])
+        two = stuff.find('of')+2
+        three = stuff.find('jobs')
+        second_num = int(stuff[two:three])
+        while second_num > first_num:
+     
+        #while len([e for e in f1 if 'class="jt prefTitle"' in e[0]]) > 0:
+            indexes = [f1.index(e) for e in f1 if 'class="jt prefTitle"' in e[0]]
+            # link stuff
+            for cur in range(len(indexes)):
+                index = indexes[cur] 
+                first = f1[index][0]
+                one = first.find('href=')+6
+                two = first.find('>', one)
+                link = first[one:two-1]
+                # title
+                three = first.find('</a>', two)
+                title = first[two+1:three]
+                # company stuff
+                comp = f1[index + 33][0]
+                one_2 = comp.find('href')
+                two_2 = comp.find('>', one_2)+1
+                three_2 = comp.find('</a>', two_2)
+                company = comp[two_2:three_2]
+                # duration posted
+                if index != indexes[len(indexes)-1]:
+                    current = f1[index:indexes[cur+1]]
+                else:
+                    current = f1[index:]
+                dur_loc = [f1.index(e) for e in current if 'class="jl_rslt_posted_cell"' in e[0]][0]
+                dur = f1[dur_loc][0]
+                #dur = f1[index + 38][0]
+                one_3 = dur.find('title=')
+                two_3 = dur.find('>', one_3)+1
+                three_3 = dur.find('</span>', two_3)
+                duration = dur[two_3:three_3]
+                # make dictionary
+                jobs[link] = [title, company, duration]
+            page += 1
+            new_formatted = pages_api.format(location, position, page)
+            f = urllib2.urlopen(new_formatted)
+            f1 = f.read().split('\n')
+            f1 = [i.split('\r') for i in f1]
+            index_of_pages = [f1.index(e) for e in f1 if 'class="jobresults_count"' in e[0]][0]+2
+            stuff = f1[index_of_pages][0]
+            stuff = ''.join([e for e in stuff if not e.isspace()])
+            one = stuff.find('-')
+            first_num = int(stuff[0:one])
+            two = stuff.find('of')+2
+            three = stuff.find('jobs')
+            second_num = int(stuff[two:three])
+    else:
+        jobs = {}
+    return jobs
