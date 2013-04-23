@@ -7,6 +7,12 @@ from search_engine_mine import stack_jobs
 from search_engine_mine import get_monster_jobs2
 from search_engine_mine import get_careerbuilder_jobs
 from search_engine_mine import get_indeed_jobs
+# version 2
+from search_engine_mine import get_stack_v2
+from search_engine_mine import get_monster_v2
+from search_engine_mine import states
+from search_engine_mine import careerbuilder_v2
+from search_engine_mine import indeed_v2
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -49,21 +55,39 @@ class MainHandler(Handler):
 		location = self.request.get('location')
 		
 		if position and location:
-			jobs = []
-			jobs += return_jobs_from_dice2(position, location)
-			jobs += stack_jobs(position, location)
-			jobs += get_monster_jobs2(position, location)
-			jobs += get_careerbuilder_jobs(position, location)
-			jobs += get_indeed_jobs(position, location)
-			for i in jobs:
-				for e in jobs:
-					if e != i and e.text == i.text:
-						del jobs[jobs.index(e)]
-			if len(jobs) > 0:	
+			#jobs = []
+			#jobs += return_jobs_from_dice2(position, location)
+			#jobs += stack_jobs(position, location)
+			#jobs += get_monster_jobs2(position, location)
+			#jobs += get_careerbuilder_jobs(position, location)
+			#jobs += get_indeed_jobs(position, location)
+			#for i in jobs:
+			#	for e in jobs:
+			#		if e != i and e.text == i.text:
+			#			del jobs[jobs.index(e)]
+			#if len(jobs) > 0:	
+			#	jobs_dict = {}
+			#	for i in jobs:
+			#		key = i.text.decode('utf-8').encode('ascii', 'xmlcharrefreplace')
+			#		jobs_dict[key] = i.absolute_url
+
+			jobs = {}
+			jobs.update(get_stack_v2(position, location))
+			jobs.update(get_monster_v2(position, location))
+			jobs.update(careerbuilder_v2(position, location))
+			jobs.update(indeed_v2(position, location))
+			if len(jobs) > 0:
 				jobs_dict = {}
-				for i in jobs:
-					key = i.text.decode('utf-8').encode('ascii', 'xmlcharrefreplace')
-					jobs_dict[key] = i.absolute_url
+				for i in jobs.keys():
+					#new_name = jobs[i][0].decode('utf-8').encode('ascii', 'xmlcharrefreplace')
+					#new_name = jobs[i][0].decode('utf-8')
+					#new_val = jobs[i]
+					#new_val[0] = new_name
+					new_values = [e.decode('utf-8') for e in jobs[i]]
+				#	new_values = [e.encode('ascii', 'ignore') for e in jobs[i]]
+					#new_values = [i.decode('utf-8').encode('ascii', 'ignore') for i in jobs[i]]
+					#new_key = i.decode('utf-8').encode('ascii', 'ignore')
+					jobs_dict[i] = new_values
 
 				self.render('main.html', position = position, location = location, jobs_dict = jobs_dict)
 			else:

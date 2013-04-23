@@ -363,3 +363,318 @@ def get_indeed_jobs(position, location):
             if ('itemprop', 'title') not in link.attrs:
                 del jobs[jobs.index(link)] 
     return jobs
+
+
+
+
+##############################################################################################################################################################################################################################################################################################################################################################################################################
+
+# VERSION 2 OF ALGORITHMS
+
+
+
+# stack
+# returns a dictionary with job_url as key and title, company, duration been posted as values
+
+def get_stack_v2(position, location):
+    import urllib2
+    # have job be a global for all algorithms to add to
+    jobs = {}
+    stack_api = 'http://careers.stackoverflow.com/jobs?searchTerm={0}&location={1}'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = stack_api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f1 = [i.split('\r') for i in f1]
+    page = 1
+    #if f1[119][0].find('title') != -1:
+    if len([e for e in f1 if '<a class="title job-link"' in e[0]]) > 0:
+        while len([e for e in f1 if '<a class="title job-link"' in e[0]]) > 0:
+            indexes = [f1.index(e) for e in f1 if '<a class="title job-link"' in e[0] or '<a class="title job-link abbrev"' in e[0]]
+            for index in indexes:
+                base_url = 'http://careers.stackoverflow.com'
+                # url concatenation stuff
+                start = f1[index][0].find('/')
+                stop = f1[index][0].find('title=')-2
+                add_url = f1[index][0][start:stop]
+                job_url = base_url+add_url
+                # job title stuff
+                start_title = stop+9
+                stop_title = f1[index][0].find('"', start_title)
+                title = f1[index][0][start_title:stop_title]
+                # company stuff
+                comp = f1[index+3][0]
+                comp_new = [e for e in comp if not e.isspace()]
+                company = ''.join(comp_new)
+                # timeline stuff
+                # job index - 6
+                job_posted_time = f1[index-6][0]
+                job_timeline = ''.join([e for e in job_posted_time if not e.isspace()])
+                jobs[job_url] = [title, company, job_timeline]
+            # make a new page
+            page += 1
+            formatted_new = formatted + '&pg=%s' % page
+            f = urllib2.urlopen(formatted_new)
+            f1 = f.read().split('\n')
+            f.close()
+            f1 = [i.split('\r') for i in f1]
+        return jobs
+    else:
+        return jobs
+
+
+# monster
+# returns a dicionary with the link as key and title, company, duration been posted as values
+
+def get_monster_v2(position, location):
+    from search_engine_mine import states
+    import urllib2
+    jobs = {}
+    position = position.replace(' ', '-')
+    location = location.replace(',', '__2C')
+    location = location.replace(' ', '-')
+    api = 'http://jobsearch.monster.com/search/{0}_5?where={1}'
+    formatted = api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f.close()
+    f1 = [i.split('\r') for i in f1]
+    pages_api = 'http://jobsearch.monster.com/search/{0}+{1}+{2}_125?pg={3}&where={4}&rad=20-miles'
+    page = 1
+    if len([e for e in f1 if 'class="slJobTitle' in e[0]]) > 0:
+        while len([e for e in f1 if 'class="slJobTitle' in e[0]]) > 0:
+            indexes = [f1.index(e) for e in f1 if 'class="slJobTitle' in e[0]]
+            for index in indexes:
+                string = f1[index][0]
+                # title stuff
+                start_title = string.find('title=')+7
+                end_title = string.find('"', start_title)
+                title = string[start_title:end_title]
+                # link stuff
+                start_link = string.find('href=')
+                start_link = start_link+6
+                stop_link = string.find('">', start_link)
+                link = string[start_link:stop_link]
+                # index of job + 22 = time
+                time_str = f1[index+22][0]
+                list_time_str = [e for e in time_str if not e.isspace()]
+                actual_time = ''.join(list_time_str)
+                # index + 8 = company
+                comp = f1[943][0]
+                start = comp.find('>')
+                start = comp.find('>')+1
+                stop = comp.find('</', start)
+                company = comp[start:stop]
+                jobs[link] = [title, company, actual_time]
+            page += 1
+            state = states[location[len(location)-2:].upper()]
+            city = location[0:location.find('_')]
+            formatted_pages = pages_api.format(state, city, position, page, location)
+            f = urllib2.urlopen(formatted_pages)
+            f1 = f.read().split('\n')
+            f1 = [i.split('\r') for i in f1]
+    else:
+        jobs = {}
+    return jobs
+
+
+
+# a dictionary for use in monster
+
+states = {'AK': 'Alaska',
+ 'AL': 'Alabama',
+ 'AR': 'Arkansas',
+ 'AZ': 'Arizona',
+ 'CA': 'California',
+ 'CO': 'Colorado',
+ 'CT': 'Connecticut',
+ 'DE': 'Delaware',
+ 'FL': 'Florida',
+ 'GA': 'Georgia',
+ 'HI': 'Hawaii',
+ 'IA': 'Iowa',
+ 'ID': 'Idaho',
+ 'IL': 'Illinois',
+ 'IN': 'Indiana',
+ 'KS': 'Kansas',
+ 'KY': 'Kentucky',
+ 'LA': 'Louisiana',
+ 'MA': 'Massachusetts',
+ 'MD': 'Maryland',
+ 'ME': 'Maine',
+ 'MI': 'Michigan',
+ 'MN': 'Minnesota',
+ 'MO': 'Missouri',
+ 'MS': 'Mississippi',
+ 'MT': 'Montana',
+ 'NC': 'North Carolina',
+ 'ND': 'North Dakota',
+ 'NE': 'Nebraska',
+ 'NH': 'New Hampshire',
+ 'NJ': 'New Jersey',
+ 'NM': 'New Mexico',
+ 'NV': 'Nevada',
+ 'NY': 'New York',
+ 'OH': 'Ohio',
+ 'OK': 'Oklahoma',
+ 'OR': 'Oregon',
+ 'PA': 'Pennsylvania',
+ 'RI': 'Rhode Island',
+ 'SC': 'South Carolina',
+ 'SD': 'South Dakota',
+ 'TN': 'Tennessee',
+ 'TX': 'Texas',
+ 'UT': 'Utah',
+ 'VA': 'Virginia',
+ 'VT': 'Vermont',
+ 'WA': 'Washington',
+ 'WI': 'Wisconsin',
+ 'WV': 'West Virginia',
+ 'WY': 'Wyoming'}
+
+
+
+
+# careerbuilder
+
+def careerbuilder_v2(position, location):
+    import urllib2
+    jobs = {}
+    api = 'http://www.careerbuilder.com/Jobseeker/Jobs/JobResults.aspx?IPath=QH&qb=1&s_rawwords={0}&s_freeloc={1}&s_jobtypes=ALL'
+    pages_api = 'http://www.careerbuilder.com/Jobseeker/Jobs/JobResults.aspx?excrit=freeLoc%3d{0}%3bQID%3dA6660204858735%3bst%3da%3buse%3dALL%3brawWords%3d{1}%3bCID%3dUS%3bSID%3d%3f%3bTID%3d0%3bENR%3dNO%3bDTP%3dDRNS%3bYDI%3dYES%3bIND%3dALL%3bPDQ%3dAll%3bPDQ%3dAll%3bPAYL%3d0%3bPAYH%3dgt120%3bPOY%3dNO%3bETD%3dALL%3bRE%3dALL%3bMGT%3dDC%3bSUP%3dDC%3bFRE%3d30%3bCHL%3dAL%3bQS%3dsid_unknown%3bSS%3dNO%3bTITL%3d0%3bOB%3d-relv%3bJQT%3dRAD%3bJDV%3dFalse%3bMaxLowExp%3d-1%3bRecsPerPage%3d25&pg={2}&IPath=QHKV'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f1 = [i.split('\r') for i in f1]
+    page = 1
+    if len([e for e in f1 if 'class="jt prefTitle"' in e[0]]) > 0:
+        # eliminate erroneous pages
+        index_of_pages = [f1.index(e) for e in f1 if 'class="jobresults_count"' in e[0]][0]+2
+        stuff = f1[index_of_pages][0]
+        stuff = ''.join([e for e in stuff if not e.isspace()])
+        one = stuff.find('-')
+        first_num = int(stuff[0:one])
+        two = stuff.find('of')+2
+        three = stuff.find('jobs')
+        second_num = int(stuff[two:three])
+        while second_num > first_num:
+     
+        #while len([e for e in f1 if 'class="jt prefTitle"' in e[0]]) > 0:
+            indexes = [f1.index(e) for e in f1 if 'class="jt prefTitle"' in e[0]]
+            # link stuff
+            for cur in range(len(indexes)):
+                index = indexes[cur] 
+                first = f1[index][0]
+                one = first.find('href=')+6
+                two = first.find('>', one)
+                link = first[one:two-1]
+                # title
+                three = first.find('</a>', two)
+                title = first[two+1:three]
+                # company stuff
+                comp = f1[index + 33][0]
+                one_2 = comp.find('href')
+                two_2 = comp.find('>', one_2)+1
+                three_2 = comp.find('</a>', two_2)
+                company = comp[two_2:three_2]
+                # duration posted
+                if index != indexes[len(indexes)-1]:
+                    current = f1[index:indexes[cur+1]]
+                else:
+                    current = f1[index:]
+                dur_loc = [f1.index(e) for e in current if 'class="jl_rslt_posted_cell"' in e[0]][0]
+                dur = f1[dur_loc][0]
+                #dur = f1[index + 38][0]
+                one_3 = dur.find('title=')
+                two_3 = dur.find('>', one_3)+1
+                three_3 = dur.find('</span>', two_3)
+                duration = dur[two_3:three_3]
+                # make dictionary
+                jobs[link] = [title, company, duration]
+            page += 1
+            new_formatted = pages_api.format(location, position, page)
+            f = urllib2.urlopen(new_formatted)
+            f1 = f.read().split('\n')
+            f1 = [i.split('\r') for i in f1]
+            index_of_pages = [f1.index(e) for e in f1 if 'class="jobresults_count"' in e[0]][0]+2
+            stuff = f1[index_of_pages][0]
+            stuff = ''.join([e for e in stuff if not e.isspace()])
+            one = stuff.find('-')
+            first_num = int(stuff[0:one])
+            two = stuff.find('of')+2
+            three = stuff.find('jobs')
+            second_num = int(stuff[two:three])
+    else:
+        jobs = {}
+    return jobs
+
+
+
+###########################################
+
+# indeed v2
+
+
+def indeed_v2(position, location):
+    import urllib2
+    jobs = {}
+    api = 'http://www.indeed.com/jobs?q={0}&l={1}'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f.close()
+    # 2 = multiples of 10
+    pages_api = 'http://www.indeed.com/jobs?q={0}&l={1}&start={2}'
+    pages = 0
+    count = 0
+    if len([e for e in f1 if 'itemprop="title"' in e]) > 0:
+        #while len([e for e in f1 if 'onsubmit="ptk(\'botsearch\');">' in e]) == 0 or 1:
+        while count < 1:
+            if len([e for e in f1 if 'onsubmit="ptk(\'botsearch\');">' in e]) > 0:
+                count += 1
+            indexes = [[f1.index(e) for e in f1 if 'itemprop="title"' in e][0]]
+            while len([e for e in f1[indexes[len(indexes)-1]+1:] if 'itemprop="title"' in e]) > 0:
+                indexes.append(f1.index([e for e in f1 if 'itemprop="title"' in e][0], indexes[len(indexes)-1]+1))
+            for index in indexes:
+                # title stuff
+                title_index = f1[index+1]
+                start = title_index.find('"')+1
+                stop = title_index.find('"', start)
+                title = title_index[start:stop] 
+                # link stuff
+                original = 'http://www.indeed.com'
+                link_stuff = f1[index-3]
+                start = link_stuff.find('"')+1
+                stop = link_stuff.find('"', start)
+                end_link = link_stuff[start:stop]
+                link = original + end_link
+                # company stuff
+                company_index = index + 19
+                comp = f1[company_index]
+                one = comp.find('"name"')+7
+                two = comp.find('</span>', one)
+                company = comp[one:two]
+                # duration stuff
+                loc = f1.index([i for i in f1[index+1:] if 'class=date' in i][0])
+                dur = f1[loc]
+                start = dur.find('>')+1
+                stop = dur.find('</span>')
+                duration = dur[start:stop]
+                # make the job
+                jobs[link] = [title, company, duration]
+            pages += 10
+            new_formatted = pages_api.format(position, location, pages)
+            f = urllib2.urlopen(new_formatted)
+            f1 = f.read().split('\n')
+            
+    else:
+        jobs = {}
+    return jobs

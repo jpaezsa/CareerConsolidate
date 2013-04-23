@@ -658,6 +658,7 @@ def indeed_v2(position, location):
                 link = original + end_link
                 # company stuff
                 company_index = index + 19
+		comp_loc = f1.index([e for e in f1[index+1:] if 'itemprop="name"' in e][0])
                 comp = f1[company_index]
                 one = comp.find('"name"')+7
                 two = comp.find('</span>', one)

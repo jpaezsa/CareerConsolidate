@@ -32,6 +32,12 @@
 <body style="background-color:#708090">
 
 <div class="container-fluid">
+
+   <div class="row-fluid">
+      <div class="span2" style="background-color:#708090">
+      </div>
+      <div class="span8 well" style="background-color:#F8F8F8">
+
 	{% block title %}
 	{% endblock %}
 	<div class="navbar navbar-static-top">
@@ -52,10 +58,12 @@
    		</div>
 	</div>
 <br>
+<!--
 <div class="row-fluid">
 	<div class="span2" style="background-color:#708090">
 	</div>
 	<div class="span8 well" style="background-color:#F8F8F8;">
+/!-->
 <div class="content pagination-left">
 <p style="margin-left:10px; margin-right:10px; margin-top:10px; margin-bottom:10px;">We aren't just another job search website.  Our algorithms utilize all the big job search websites' power and funnel it into one hub; we search <b>Monster.com,  Careerbuilder.com,  Indeed.com,  Dice.com,  and Careers.Stackoverflow.com</b>...and more to come</p>
 <br>
@@ -82,7 +90,12 @@
 	<br>
 	   <ul class="nav nav-list">
 		{% for job in jobs_dict.keys() %}
-		<li><a class="linkss" target="_blank" onclick="window.open('{{jobs_dict[job]}}');"><h4>{{job}}</h4></a></li>
+		<li>
+		<a class="linkss" target="_blank" onclick="window.open('{{job}}');"><h5>{{jobs_dict[job][0]}}</h5></a>
+		<p>{{jobs_dict[job][1]}}</p>
+		<p>Time posted: {{jobs_dict[job][2]}}</p>
+		</li>
+		<hr>
 		<br>
 			
 		{% endfor %}
