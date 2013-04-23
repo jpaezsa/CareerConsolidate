@@ -612,3 +612,69 @@ def careerbuilder_v2(position, location):
     else:
         jobs = {}
     return jobs
+
+
+
+###########################################
+
+# indeed v2
+
+
+def indeed_v2(position, location):
+    import urllib2
+    jobs = {}
+    api = 'http://www.indeed.com/jobs?q={0}&l={1}'
+    position = position.replace(' ', '+')
+    location = location.replace(',', '%2C')
+    location = location.replace(' ', '+')
+    formatted = api.format(position, location)
+    f = urllib2.urlopen(formatted)
+    f1 = f.read().split('\n')
+    f.close()
+    # 2 = multiples of 10
+    pages_api = 'http://www.indeed.com/jobs?q={0}&l={1}&start={2}'
+    pages = 0
+    count = 0
+    if len([e for e in f1 if 'itemprop="title"' in e]) > 0:
+        #while len([e for e in f1 if 'onsubmit="ptk(\'botsearch\');">' in e]) == 0 or 1:
+        while count < 1:
+            if len([e for e in f1 if 'onsubmit="ptk(\'botsearch\');">' in e]) > 0:
+                count += 1
+            indexes = [[f1.index(e) for e in f1 if 'itemprop="title"' in e][0]]
+            while len([e for e in f1[indexes[len(indexes)-1]+1:] if 'itemprop="title"' in e]) > 0:
+                indexes.append(f1.index([e for e in f1 if 'itemprop="title"' in e][0], indexes[len(indexes)-1]+1))
+            for index in indexes:
+                # title stuff
+                title_index = f1[index+1]
+                start = title_index.find('"')+1
+                stop = title_index.find('"', start)
+                title = title_index[start:stop] 
+                # link stuff
+                original = 'http://www.indeed.com'
+                link_stuff = f1[index-3]
+                start = link_stuff.find('"')+1
+                stop = link_stuff.find('"', start)
+                end_link = link_stuff[start:stop]
+                link = original + end_link
+                # company stuff
+                company_index = index + 19
+                comp = f1[company_index]
+                one = comp.find('"name"')+7
+                two = comp.find('</span>', one)
+                company = comp[one:two]
+                # duration stuff
+                loc = f1.index([i for i in f1[index+1:] if 'class=date' in i][0])
+                dur = f1[loc]
+                start = dur.find('>')+1
+                stop = dur.find('</span>')
+                duration = dur[start:stop]
+                # make the job
+                jobs[link] = [title, company, duration]
+            pages += 10
+            new_formatted = pages_api.format(position, location, pages)
+            f = urllib2.urlopen(new_formatted)
+            f1 = f.read().split('\n')
+            
+    else:
+        jobs = {}
+    return jobs
