@@ -14,6 +14,7 @@
 
 <!-- +++++++++++++++++ /!-->
 
+
 <!-- Social Network Script /!-->
 
 <script type="text/javascript" src="http://w.sharethis.com/button/buttons.js"></script>
@@ -25,7 +26,10 @@
 
 </head>
 
+<!--
 <body style="background-color:#F8F8F8;">
+/!-->
+<body style="background-color:#708090">
 
 <div class="container-fluid">
 	{% block title %}
@@ -48,7 +52,11 @@
    		</div>
 	</div>
 <br>
-<div class="content pagination-centered">
+<div class="row-fluid">
+	<div class="span2" style="background-color:#708090">
+	</div>
+	<div class="span8 well" style="background-color:#F8F8F8;">
+<div class="content pagination-left">
 <p style="margin-left:10px; margin-right:10px; margin-top:10px; margin-bottom:10px;">We aren't just another job search website.  Our algorithms utilize all the big job search websites' power and funnel it into one hub; we search <b>Monster.com,  Careerbuilder.com,  Indeed.com,  Dice.com,  and Careers.Stackoverflow.com</b>...and more to come</p>
 <br>
 <br>
@@ -72,19 +80,20 @@
 	<p style="color:green; font-size:22px;"><b>The jobs we found for {{position}} in {{location}}:</b></p>
 	<hr>
 	<br>
-	   <ol class="pager">
+	   <ul class="nav nav-list">
 		{% for job in jobs_dict.keys() %}
 		<li><a class="linkss" target="_blank" onclick="window.open('{{jobs_dict[job]}}');"><h4>{{job}}</h4></a></li>
 		<br>
 			
 		{% endfor %}
-	  </ol>
+	  </ul>
 
 	{% elif nojobs %}
 		<p style="color:green; font-weight:bold; font-size:25px; padding:50px;">{{nojobs}}</p> 
 	{% endif %}
+	</div>
 
-
+	<div class="content pagination-centered">
 	{% block footer %}
 	<div class="footer-wrapper" style="margin-top:10px;">
                         &copy; Copyright 2013 by <a href="http://www.wesmadrigal.blogspot.com">Wesley Madrigal</a>
@@ -97,6 +106,10 @@
         </div>
 
 	{% endblock %}
+	</div>
+</div>
+	<div class="span2" style="background-color:#708090">
+	</div>
 </div>
 </div>
 
