@@ -80,11 +80,6 @@ class MainHandler(Handler):
 			jobs.update(Dice_v2(position, location))
 			if len(jobs) > 0:
 				jobs_dict = {}
-
-				for e in jobs.keys():
-					for i in jobs.keys():
-						if i == e and jobs[i][0] == jobs[e][0]:
-							del jobs[i]
 				for i in jobs.keys():
 					new_values = [e.decode('utf-8') for e in jobs[i]]
 					jobs_dict[i] = new_values
