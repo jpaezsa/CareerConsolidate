@@ -13,6 +13,7 @@ from search_engine_mine import get_monster_v2
 from search_engine_mine import states
 from search_engine_mine import careerbuilder_v2
 from search_engine_mine import indeed_v2
+from search_engine_mine import Dice_v2
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -76,17 +77,16 @@ class MainHandler(Handler):
 			jobs.update(get_monster_v2(position, location))
 			jobs.update(careerbuilder_v2(position, location))
 			jobs.update(indeed_v2(position, location))
+			jobs.update(Dice_v2(position, location))
 			if len(jobs) > 0:
 				jobs_dict = {}
+
+				for e in jobs.keys():
+					for i in jobs.keys():
+						if i == e and jobs[i][0] == jobs[e][0]:
+							del jobs[i]
 				for i in jobs.keys():
-					#new_name = jobs[i][0].decode('utf-8').encode('ascii', 'xmlcharrefreplace')
-					#new_name = jobs[i][0].decode('utf-8')
-					#new_val = jobs[i]
-					#new_val[0] = new_name
 					new_values = [e.decode('utf-8') for e in jobs[i]]
-				#	new_values = [e.encode('ascii', 'ignore') for e in jobs[i]]
-					#new_values = [i.decode('utf-8').encode('ascii', 'ignore') for i in jobs[i]]
-					#new_key = i.decode('utf-8').encode('ascii', 'ignore')
 					jobs_dict[i] = new_values
 
 				self.render('main.html', position = position, location = location, jobs_dict = jobs_dict)

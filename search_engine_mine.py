@@ -679,3 +679,74 @@ def indeed_v2(position, location):
     else:
         jobs = {}
     return jobs
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+# Last, but not least, is Dice again.  This one gave initial trouble and I was in a rush!
+
+# the dice algorithm requires zip codes for locations, and rather than typing out some
+# potentially causing error or ambiguity I just used mechanize to take the user's
+# specifically entered location, manually fill the form and then use urllib2 from then on
+def Dice_v2(position, location):
+    jobs = {}
+    import urllib2
+    import mechanize
+    import cookielib
+    cj = cookielib.LWPCookieJar()
+    br = mechanize.Browser()
+    br.addheaders = [('User-Agent', 'Mozilla/5.0(X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.set_debug_http(True)
+    br.set_debug_redirects(True)
+    br.set_handle_equiv(True)
+    br.set_handle_gzip(True)
+    br.set_handle_redirect(True)
+    br.set_handle_robots(False)
+    br.open('http://www.dice.com')
+    br.select_form(nr=0)
+    br.form['FREE_TEXT'] = position
+    br.form['WHERE'] = location
+    br.submit()
+    f1 = br.response().read().split('\n')
+    # add 30 to "o" each time
+    url = br.geturl()
+    front = url[0:url.find('q=')]
+    back = url[url.find('q='):]
+    new = front + 'o={0}&' + back
+    #
+    count = 0
+    origin_url = 'http://www.dice.com'
+    if len([e for e in f1 if '<tr class="STDsrRes">' in e]) > 0:
+        while len([e for e in f1 if '<tr class="STDsrRes">' in e]) > 0:
+            indexes = [f1.index([e for e in f1 if '<tr class="STDsrRes">' in e][0])]
+            # make the index
+            #while f1.index([e for e in f1 if '<tr class="STDsrRes">' in e][0], indexes[len(indexes)-1]+1):
+            while len([e for e in f1[indexes[len(indexes)-1]+1:] if '<tr class="STDsrRes">' in e]) > 0:
+                indexes.append(f1.index([e for e in f1 if '<tr class="STDsrRes">' in e][0], indexes[len(indexes)-1]+1))
+            for index in indexes:
+                # link
+                loc = index + 16
+                cur = f1[index+16]
+                start = cur.find('"')+1
+                stop = cur.find('"', start+1)
+                link = origin_url + cur[start:stop]
+                # job title
+                start_T = stop+2
+                stop_T = cur.find('</a>')
+                job_title = cur[start_T:stop_T]
+                # company
+                comp = f1[index + 22]
+                start = comp.find('>')+1
+                stop = comp.find('</a>')
+                company = comp[start:stop]
+                # duration posted
+                dur = f1[index + 36]
+                start = dur.find('>')+1
+                stop = dur.find('</td>')
+                duration = dur[start:stop]
+                # add to dict
+                jobs[link] = [job_title, company, duration]
+            count += 30
+            formatted = new.format(count)
+            f1 = urllib2.urlopen(formatted).read().split('\n')
+    else:
+        jobs = {}
+    return jobs

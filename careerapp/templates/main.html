@@ -65,7 +65,7 @@
 	<div class="span8 well" style="background-color:#F8F8F8;">
 /!-->
 <div class="content pagination-left">
-<p style="margin-left:10px; margin-right:10px; margin-top:10px; margin-bottom:10px;">We aren't just another job search website.  Our algorithms utilize all the big job search websites' power and funnel it into one hub; we search <b>Monster.com,  Careerbuilder.com,  Indeed.com,  Dice.com,  and Careers.Stackoverflow.com</b>...and more to come</p>
+<p style="margin-left:10px; margin-right:10px; margin-top:10px; margin-bottom:10px;">We aren't just another job search website.  Our algorithms utilize all the big job search websites' power and funnel it into one hub; we search <b>Monster.com,  Careerbuilder.com,  Indeed.com, and Careers.Stackoverflow.com</b>...and more to come</p>
 <br>
 <br>
 	<form method="POST">
@@ -85,14 +85,14 @@
 	<br>
 	
 	{% if jobs_dict %}
-	<p style="color:green; font-size:22px;"><b>The jobs we found for {{position}} in {{location}}:</b></p>
+	<p style="color:green; font-size:22px;">The jobs we found for <b>{{position}}</b> in <b>{{location}}:</b></p>
 	<hr>
 	<br>
 	   <ul class="nav nav-list">
 		{% for job in jobs_dict.keys() %}
 		<li>
 		<a class="linkss" target="_blank" onclick="window.open('{{job}}');"><h5>{{jobs_dict[job][0]}}</h5></a>
-		<p>{{jobs_dict[job][1]}}</p>
+		<p><b>{{jobs_dict[job][1]}}</b></p>
 		<p>Time posted: {{jobs_dict[job][2]}}</p>
 		</li>
 		<hr>
